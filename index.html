@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python AI — Premium Python Learning Universe</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    /* Inline styles for hint box, small input modal and animations */
+    .hint-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.35);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: all 260ms ease;
+      backdrop-filter: blur(6px) saturate(120%);
+    }
+    .hint-box.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hint-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .hint-icon {
+      font-size: 16px;
+    }
+    /* Simple modal for input() */
+    .py-input-modal {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 12000;
+      background: linear-gradient(180deg, rgba(20,24,35,0.98), rgba(12,15,22,0.98));
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      min-width: 320px;
+      color: var(--text-primary);
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .py-input-modal.show { display: flex; }
+    .py-input-prompt { color: var(--text-secondary); font-size: 13px; }
+    .py-input-row { display:flex; gap:8px; }
+    .py-input-row input { flex:1; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color); background:transparent; color:var(--text-primary); }
+    .py-input-row button { padding:8px 12px; border-radius:6px; }
+
+    /* Console fallback message */
+    .pyodide-loading {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Space Ambient Background -->
+  <div class="space-bg"></div>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="logo-container">
+        <div class="logo-icon">P</div>
+        <div class="logo-text">
+          Python AI
+          <div class="logo-sub" style="font-size:11px; font-weight:600; margin-top:2px;">by Prabhanjan.A</div>
+        </div>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="#dashboard" class="nav-item active" data-target="dashboard-view">
+          <i class="fa-solid fa-square-poll-vertical"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#roadmap" class="nav-item" data-target="roadmap-view">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Roadmap</span>
+        </a>
+        <a href="#teacher" class="nav-item" data-target="teacher-view">
+          <i class="fa-solid fa-robot"></i>
+          <span>Python AI Teacher</span>
+        </a>
+        <a href="#editor" class="nav-item" data-target="editor-view">
+          <i class="fa-solid fa-code"></i>
+          <span>Live Editor</span>
+        </a>
+        <a href="#practice" class="nav-item" data-target="practice-view">
+          <i class="fa-solid fa-gamepad"></i>
+          <span>Practice Arena</span>
+        </a>
+        <a href="#quiz" class="nav-item" data-target="quiz-view">
+          <i class="fa-solid fa-brain"></i>
+          <span>Quiz Center</span>
+        </a>
+        <a href="#debugger" class="nav-item" data-target="debugger-view">
+          <i class="fa-solid fa-bug"></i>
+          <span>AI Debug Lab</span>
+        </a>
+        <a href="#projects" class="nav-item" data-target="projects-view">
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>Project Lab</span>
+        </a>
+        <a href="#leaderboard" class="nav-item" data-target="leaderboard-view">
+          <i class="fa-solid fa-trophy"></i>
+          <span>Leaderboard</span>
+        </a>
+        <a href="#profile" class="nav-item" data-target="profile-view">
+          <i class="fa-solid fa-user-astronaut"></i>
+          <span>Profile</span>
+        </a>
+      </nav>
+
+      <!-- User Profile Summary & Mode toggling -->
+      <div class="user-profile-summary">
+        <div class="avatar-circle" id="sidebar-avatar">🤖</div>
+        <div class="profile-meta">
+          <div class="profile-name" id="sidebar-username">PythonCoder</div>
+          <div class="profile-sub" id="sidebar-level">Level 1 Pythonist</div>
+        </div>
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Section -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="top-header">
+        <button class="menu-toggle-btn" id="sidebar-toggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        
+        <h2>Python AI Dashboard</h2>
+
+        <div class="header-stats">
+          <div class="stat-pill xp" title="Total Experience Points">
+            <i class="fa-solid fa-bolt"></i>
+            <span id="header-xp">0 XP</span>
+          </div>
+          <div class="stat-pill streak" title="Daily Learning Streak">
+            <i class="fa-solid fa-fire"></i>
+            <span id="header-streak">1 Day</span>
+          </div>
+          <div class="stat-pill level" title="Current Level">
+            <i class="fa-solid fa-award"></i>
+            <span id="header-level">Lvl 1</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dynamic View Panels -->
+      
+      <!-- 1. DASHBOARD VIEW -->
+      <section id="dashboard-view" class="view-panel active">
+        <!-- Hero Section -->
+        <div class="hero-section">
+          <div class="hero-glowing-blob"></div>
+          <h1 class="hero-title">Learn Python.<br><span class="text-gradient-cyan">Build Anything.</span> <span class="text-gradient-violet">Powered by AI.</span></h1>
+          <p class="hero-subtitle">Your personal AI Python teacher that teaches, challenges, guides, and grows with you from hello-world to ML algorithms.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" id="hero-learn-btn">Start Learning 🚀</button>
+            <button class="btn btn-secondary" id="hero-teacher-btn">Ask Python AI Teacher 🤖</button>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-num">35+</div>
+              <div class="stat-label">Lessons</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">50+</div>
+              <div class="stat-label">Challenges</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">20+</div>
+              <div class="stat-label">Quizzes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">15+</div>
+              <div class="stat-label">Projects</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Left Column -->
+          <div class="dash-column">
+            <!-- Continue Learning Card -->
+            <div class="dashboard-card gradient-border">
+              <div class="card-header">
+                <h3 class="card-title">Continue Learning</h3>
+                <i class="fa-solid fa-play card-icon"></i>
+              </div>
+              <div class="continue-widget" id="continue-learning-widget">
+                <div class="lesson-node-icon"><i class="fa-brands fa-python"></i></div>
+                <div class="continue-details">
+                  <h4 class="continue-title" id="continue-lesson-title">Introduction to Python</h4>
+                  <div class="continue-desc">Foundations - Level 1</div>
+                </div>
+                <button class="btn btn-primary" id="continue-lesson-btn" style="padding: 8px 16px;">Resume</button>
+              </div>
+            </div>
+
+            <!-- Recommended Actions -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">AI Personalized Recommendations</h3>
+                <i class="fa-solid fa-sparkles card-icon" style="color: var(--accent-violet)"></i>
+              </div>
+              <div id="ai-recommendations-container" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Dynamically populated recommendation cards -->
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">Your Recent Activity</h3>
+                <i class="fa-solid fa-history card-icon"></i>
+              </div>
+              <ul class="activity-list" id="activity-log-container">
+                <!-- Dynamically Populated activities -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="dash-column">
+            <!-- Level Progression details -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">Level Progression</h3>
+                <i class="fa-solid fa-ranking-star card-icon"></i>
+              </div>
+              <div style="margin-bottom: 12px; display: flex; justify-content: space-between; font-weight: 600;">
+                <span id="dash-level-text">Level 1</span>
+                <span id="dash-xp-details">0 / 100 XP</span>
+              </div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" id="dash-xp-progress-bar" style="width: 0%"></div>
+              </div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 10px; line-height: 1.4;">
+                Earn XP by completing roadmap nodes, solving code challenges, and scoring high on quizzes!
+              </div>
+            </div>
+
+            <!-- XP SVG Graph chart -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">Weekly XP Activity</h3>
+                <i class="fa-solid fa-chart-line card-icon"></i>
+              </div>
+              <div class="progress-chart-container" id="xp-weekly-chart">
+                <!-- Dynamic SVG Bars populated via js -->
+              </div>
+            </div>
+
+            <!-- Weak Topics -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">Topics to Improve</h3>
+                <i class="fa-solid fa-circle-exclamation card-icon"></i>
+              </div>
+              <div id="weak-topics-container">
+                <span class="topic-tag">None yet! Keep studying. 🌟</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. ROADMAP VIEW -->
+      <section id="roadmap-view" class="view-panel">
+        <h2 style="font-size: 28px; margin-bottom: 8px;">Learning Path Roadmap</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 40px;">Follow this connected structured path to master Python step-by-step. Completing lessons unlocks subsequent nodes.</p>
+        
+        <div class="roadmap-container" id="roadmap-tree">
+          <!-- Roadmap Level Blocks dynamically generated from Database -->
+        </div>
+      </section>
+
+      <!-- 3. AI TEACHER VIEW -->
+      <section id="teacher-view" class="view-panel">
+        <div class="chat-container">
+          <!-- Chat sidebar histories -->
+          <div class="chat-history-sidebar">
+            <button class="btn btn-primary" id="new-chat-btn" style="width: 100%; font-size: 13px; padding: 10px;">
+              <i class="fa-solid fa-plus"></i> New Session
+            </button>
+            <h4 style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-top: 16px;">Past Chats</h4>
+            <div class="chat-history-list" id="chat-sessions-list">
+              <!-- Dynamically populated histories -->
+            </div>
+          </div>
+
+          <!-- Main chat dialog screen -->
+          <div class="chat-main-area">
+            <div class="chat-header-bar">
+              <div class="avatar-circle" style="width: 38px; height: 38px; font-size: 18px;">🤖</div>
+              <div style="flex-grow: 1;">
+                <h4 style="font-size: 15px;">Python AI Teacher</h4>
+                <span style="font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                  <span class="teacher-status-dot"></span> Active Assistant
+                </span>
+              </div>
+              <div class="ai-floating-mascot" style="position: static; width:34px; height: 34px; font-size:18px;">🤖</div>
+            </div>
+
+            <!-- Scrollable chat items -->
+            <div class="chat-messages" id="chat-messages-container">
+              <!-- Message bubbles -->
+            </div>
+
+            <!-- Fast quick prompts -->
+            <div class="quick-actions-bar" id="chat-quick-actions">
+              <button class="quick-btn" data-prompt="Explain loops simply">Explain Loops 🌀</button>
+              <button class="quick-btn" data-prompt="Give me a simple Python example">Give example 💡</button>
+              <button class="quick-btn" data-prompt="Quiz me on basic variables">Quiz me 🧠</button>
+              <button class="quick-btn" data-prompt="Explain like I'm a beginner: print()">Explain print() 📝</button>
+              <button class="quick-btn" data-prompt="Give me a coding challenge to solve">Give Challenge 🚀</button>
+            </div>
+
+            <!-- Keyboard text submissions -->
+            <div class="chat-input-area">
+              <div class="chat-input-wrapper">
+                <input type="text" class="chat-input" id="chat-input-box" placeholder="Ask Python AI anything about Python...">
+              </div>
+              <button class="chat-send-btn" id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. INTERACTIVE LESSON PANEL -->
+      <section id="lessons-view" class="view-panel">
+        <div class="lesson-layout">
+          <!-- Explanatory content -->
+          <div class="lesson-content-panel" id="lesson-details-panel">
+            <!-- Dynamic Content loaded from RoadMap data -->
+          </div>
+
+          <!-- Dynamic Sandbox and code testing checks -->
+          <div class="lesson-interactive-panel">
+            <!-- Quick Quiz Checking -->
+            <div class="lesson-quiz-card" id="lesson-quiz-container">
+              <!-- Populated Quiz components -->
+            </div>
+
+            <!-- Lesson Practice Challenge -->
+            <div class="lesson-practice-card" id="lesson-practice-container">
+              <h3 style="font-size: 18px; margin-bottom: 12px;">Lesson Challenge</h3>
+              <div id="lesson-challenge-prompt" style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">
+                <!-- Problem prompt details -->
+              </div>
+              <!-- Code Editor Wrapper -->
+              <div style="height: 320px; margin-bottom: 12px;">
+                <div class="editor-card">
+                  <div class="editor-header">
+                    <span class="editor-title"><i class="fa-solid fa-code"></i> Python Workspace</span>
+                    <div class="editor-actions">
+                      <button class="editor-btn" id="lesson-reset-code-btn">Reset</button>
+                      <button class="editor-btn run" id="lesson-run-code-btn">Run Code</button>
+                    </div>
+                  </div>
+                  <div class="editor-body">
+                    <div class="line-numbers" id="lesson-line-numbers">1</div>
+                    <textarea class="code-textarea" id="lesson-code-editor" spellcheck="false"></textarea>
+                  </div>
+                  <div class="editor-footer-panels">
+                    <div class="console-panel">
+                      <div class="panel-header">Console Terminal</div>
+                      <div class="console-log" id="lesson-console-output">> Waiting for code execution...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI Hint drawer & Completion trigger -->
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-secondary" id="lesson-hint-btn" style="padding: 10px 18px;"><i class="fa-solid fa-lightbulb"></i> Get AI Hint</button>
+                <button class="btn btn-primary" id="lesson-submit-btn" style="padding: 12px 24px;">Complete Lesson & Unlock Next 🔓</button>
+              </div>
+
+              <!-- AI Suggestion error log -->
+              <div class="ai-suggestion-box" id="lesson-error-suggestion">
+                <div class="ai-suggestion-title"><i class="fa-solid fa-sparkles"></i> Python AI Code Coach</div>
+                <div id="lesson-error-suggestion-text" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;
